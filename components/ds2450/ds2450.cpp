@@ -52,7 +52,7 @@ void DS2450Sensor::setup() {
 void DS2450Sensor::dump_config() {
   char buffer[17];
   ESP_LOGCONFIG(TAG, "DS2450:");
-  ESP_LOGCONFIG(TAG, "  Address: 0x%s", format_hex_to(buffer, sizeof(buffer), this->address_));
+  ESP_LOGCONFIG(TAG, "  Address: 0x%s", format_hex_to(buffer, this->address_));
   ESP_LOGCONFIG(TAG, "  Channel: %c", 'A' + this->channel_);
   ESP_LOGCONFIG(TAG, "  Resolution: %u bit", this->resolution_);
   LOG_UPDATE_INTERVAL(this);
