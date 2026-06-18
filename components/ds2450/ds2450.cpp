@@ -150,25 +150,17 @@ bool DS2450Sensor::read_voltage_(float *voltage) {
     return false;
 
   this->bus_->write8(DS2450_CMD_READ_MEMORY);
-  this->bus_->write8(DS2450_ADDR_ADC_LO);
-  this->bus_->write8(DS2450_ADDR_ADC_HI);
+  this->bus_->write8(DS2450_ADDR_ADC_LO);  // 0x00
+  this->bus_->write8(DS2450_ADDR_ADC_HI);  // 0x00
 
-  uint8_t data[8];
-  for (uint8_t i = 0; i < 8; i++) {
+  uint8_t data[13];
+  for (uint8_t i = 0; i < 13; i++) {
     data[i] = this->bus_->read8();
   }
 
-  uint8_t lo = data[this->channel_ * 2];
-  uint8_t hi = data[this->channel_ * 2 + 1];
+  uint8_t value = data[3 + this->channel_ * 2];
 
-  uint16_t raw = uint16_t(lo) | (uint16_t(hi) << 8);
-
-  if (this->resolution_ == 8) {
-    // In 8-bit mode the useful result is effectively in the high byte.
-    *voltage = float(hi) / 50.0f;  // 5.10V / 255 ≈ 0.02V
-  } else {
-    *voltage = float(raw) * 5.10f / 65535.0f;
-  }
+  *voltage = float(value) / 50.0f;  // 255 / 50 = 5.10V
 
   return true;
 }
