@@ -160,7 +160,7 @@ bool DS2450Sensor::read_voltage_(float *voltage) {
 
   uint8_t value = data[1 + this->channel_ * 2];
 
-  *voltage = float(value) * 5.10f / 255.0f;
+  *voltage = float(value) * 3.85f / 255.0f;
 
   return true;
 }
