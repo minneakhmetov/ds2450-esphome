@@ -150,17 +150,17 @@ bool DS2450Sensor::read_voltage_(float *voltage) {
     return false;
 
   this->bus_->write8(DS2450_CMD_READ_MEMORY);
-  this->bus_->write8(DS2450_ADDR_ADC_LO);  // 0x00
-  this->bus_->write8(DS2450_ADDR_ADC_HI);  // 0x00
+  this->bus_->write8(DS2450_ADDR_ADC_LO);
+  this->bus_->write8(DS2450_ADDR_ADC_HI);
 
-  uint8_t data[13];
-  for (uint8_t i = 0; i < 13; i++) {
+  uint8_t data[10];
+  for (uint8_t i = 0; i < 10; i++) {
     data[i] = this->bus_->read8();
   }
 
-  uint8_t value = data[3 + this->channel_ * 2];
+  uint8_t value = data[1 + this->channel_ * 2];
 
-  *voltage = float(value) / 50.0f;  // 255 / 50 = 5.10V
+  *voltage = float(value) * 5.10f / 255.0f;
 
   return true;
 }
