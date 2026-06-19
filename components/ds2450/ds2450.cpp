@@ -38,12 +38,93 @@ void DS2450Sensor::setup() {
     return;
   }
 
+  // Автопоиск устройства
+  if (this->address_ == 0) {
+    std::vector<uint64_t> devices;
+
+    for (auto dev : this->bus_->get_devices()) {
+      if ((dev & 0xFF) == 0x20) {
+        devices.push_back(dev);
+      }
+    }
+
+    if (devices.empty()) {
+      ESP_LOGE(TAG, "No DS2450 devices found on 1-Wire bus");
+      this->mark_failed();
+      return;
+    }
+
+    if (devices.size() == 1) {
+      this->address_ = devices[0];
+
+      char buffer[17];
+      ESP_LOGCONFIG(TAG,
+                    "Auto-selected DS2450 address: 0x%s",
+                    format_hex_to(buffer, this->address_));
+    } else {
+      ESP_LOGE(TAG,
+               "Multiple DS2450 devices found, address must be specified:");
+
+      for (auto dev : devices) {
+        char buffer[17];
+        ESP_LOGE(TAG, "  - 0x%s", format_hex_to(buffer, dev));
+      }
+
+      this->mark_failed();
+      return;
+    }
+  }
+
+  // Проверяем family code
   uint8_t family = this->address_ & 0xFF;
+
   if (family != 0x20) {
-    ESP_LOGW(TAG, "Address family is 0x%02X, expected DS2450 family 0x20", family);
+    ESP_LOGE(TAG,
+             "Address family is 0x%02X, expected DS2450 family 0x20",
+             family);
+    this->mark_failed();
+    return;
+  }
+
+  // Проверяем наличие адреса на шине
+  bool found = false;
+
+  for (auto dev : this->bus_->get_devices()) {
+    if (dev == this->address_) {
+      found = true;
+      break;
+    }
+  }
+
+  if (!found) {
+    char buffer[17];
+
+    ESP_LOGE(TAG,
+             "Address 0x%s was not found on 1-Wire bus",
+             format_hex_to(buffer, this->address_));
+
+    ESP_LOGE(TAG, "Available DS2450 devices:");
+
+    bool any = false;
+
+    for (auto dev : this->bus_->get_devices()) {
+      if ((dev & 0xFF) == 0x20) {
+        char buf[17];
+        ESP_LOGE(TAG, "  - 0x%s", format_hex_to(buf, dev));
+        any = true;
+      }
+    }
+
+    if (!any) {
+      ESP_LOGE(TAG, "  (none)");
+    }
+
+    this->mark_failed();
+    return;
   }
 
   this->configured_ = this->configure_();
+
   if (!this->configured_) {
     ESP_LOGW(TAG, "Initial DS2450 configuration failed");
   }

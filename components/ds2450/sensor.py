@@ -39,7 +39,7 @@ CONFIG_SCHEMA = (
         {
             cv.GenerateID(): cv.declare_id(DS2450Sensor),
             cv.GenerateID(CONF_ONE_WIRE_ID): cv.use_id(one_wire.OneWireBus),
-            cv.Required(CONF_ADDRESS): cv.hex_uint64_t,
+            cv.Optional(CONF_ADDRESS, default=0): cv.hex_uint64_t,
             cv.Required(CONF_CHANNEL): cv.enum(CHANNELS, upper=True),
             cv.Optional(CONF_RESOLUTION, default=8): cv.one_of(8, 16, int=True),
         }
